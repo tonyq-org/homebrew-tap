@@ -1,0 +1,68 @@
+name: Update Cask
+
+on:
+  repository_dispatch:
+    types: [update-cask]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to update to (without v prefix)'
+        required: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            echo "VERSION=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download DMG and compute SHA256
+        id: sha
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          URL="https://github.com/tony1223/better-agent-terminal/releases/download/v${VERSION}/BetterAgentTerminal-${VERSION}-universal.dmg"
+          echo "Downloading $URL"
+          curl -sL "$URL" -o app.dmg
+          SHA256=$(shasum -a 256 app.dmg | awk '{print $1}')
+          echo "SHA256=$SHA256" >> $GITHUB_OUTPUT
+          echo "SHA256: $SHA256"
+
+      - name: Update Cask
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          SHA256="${{ steps.sha.outputs.SHA256 }}"
+          cat > Casks/better-agent-terminal.rb << EOF
+          cask "better-agent-terminal" do
+            version "${VERSION}"
+            sha256 "${SHA256}"
+
+            url "https://github.com/tony1223/better-agent-terminal/releases/download/v#{version}/BetterAgentTerminal-#{version}-universal.dmg"
+            name "BetterAgentTerminal"
+            desc "Terminal aggregator with multi-workspace support and Claude Code integration"
+            homepage "https://github.com/tony1223/better-agent-terminal"
+
+            app "BetterAgentTerminal.app"
+          end
+          EOF
+          # Remove leading spaces from heredoc
+          sed -i 's/^          //' Casks/better-agent-terminal.rb
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/better-agent-terminal.rb
+          git commit -m "Update better-agent-terminal to ${{ steps.version.outputs.VERSION }}"
+          git push
