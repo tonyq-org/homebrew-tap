@@ -1,6 +1,6 @@
 cask "better-agent-terminal" do
-  version "1.56.0"
-  sha256 "532f23b17ea2dfa7dec866588f26da5e630322d3d2ccb8d1ad43d14b344b882e"
+  version "2.0.0"
+  sha256 "599870ef14a0445196d6d9f6d5cbaae75aa6f4a077142e0e5e90b79cc3142d9d"
 
   url "https://github.com/tony1223/better-agent-terminal/releases/download/v#{version}/BetterAgentTerminal-#{version}-universal.dmg"
   name "BetterAgentTerminal"
