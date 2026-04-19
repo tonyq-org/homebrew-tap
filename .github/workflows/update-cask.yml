@@ -28,27 +28,46 @@ jobs:
             echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Download DMG and compute SHA256
+      - name: Download DMGs and compute SHA256
         id: sha
         run: |
           VERSION="${{ steps.version.outputs.VERSION }}"
-          URL="https://github.com/tony1223/better-agent-terminal/releases/download/v${VERSION}/BetterAgentTerminal-${VERSION}-universal.dmg"
-          echo "Downloading $URL"
-          curl -sL "$URL" -o app.dmg
-          SHA256=$(shasum -a 256 app.dmg | awk '{print $1}')
-          echo "SHA256=$SHA256" >> $GITHUB_OUTPUT
-          echo "SHA256: $SHA256"
+          BASE="https://github.com/tony1223/better-agent-terminal/releases/download/v${VERSION}"
+
+          ARM_URL="${BASE}/BetterAgentTerminal-${VERSION}-arm64.dmg"
+          X64_URL="${BASE}/BetterAgentTerminal-${VERSION}-x64.dmg"
+
+          echo "Downloading $ARM_URL"
+          curl -fsSL "$ARM_URL" -o arm64.dmg
+          ARM_SHA=$(shasum -a 256 arm64.dmg | awk '{print $1}')
+          echo "arm64 SHA256: $ARM_SHA"
+          echo "ARM_SHA=$ARM_SHA" >> $GITHUB_OUTPUT
+
+          echo "Downloading $X64_URL"
+          curl -fsSL "$X64_URL" -o x64.dmg
+          X64_SHA=$(shasum -a 256 x64.dmg | awk '{print $1}')
+          echo "x64 SHA256: $X64_SHA"
+          echo "X64_SHA=$X64_SHA" >> $GITHUB_OUTPUT
 
       - name: Update Cask
         run: |
           VERSION="${{ steps.version.outputs.VERSION }}"
-          SHA256="${{ steps.sha.outputs.SHA256 }}"
+          ARM_SHA="${{ steps.sha.outputs.ARM_SHA }}"
+          X64_SHA="${{ steps.sha.outputs.X64_SHA }}"
           cat > Casks/better-agent-terminal.rb << EOF
           cask "better-agent-terminal" do
             version "${VERSION}"
-            sha256 "${SHA256}"
 
-            url "https://github.com/tony1223/better-agent-terminal/releases/download/v#{version}/BetterAgentTerminal-#{version}-universal.dmg"
+            on_arm do
+              sha256 "${ARM_SHA}"
+              url "https://github.com/tony1223/better-agent-terminal/releases/download/v#{version}/BetterAgentTerminal-#{version}-arm64.dmg"
+            end
+
+            on_intel do
+              sha256 "${X64_SHA}"
+              url "https://github.com/tony1223/better-agent-terminal/releases/download/v#{version}/BetterAgentTerminal-#{version}-x64.dmg"
+            end
+
             name "BetterAgentTerminal"
             desc "Terminal aggregator with multi-workspace support and Claude Code integration"
             homepage "https://github.com/tony1223/better-agent-terminal"
