@@ -1,13 +1,13 @@
 cask "better-agent-terminal" do
-  version "3.1.2"
+  version "3.1.3"
 
   on_arm do
-    sha256 "b1bd041df32508ddf674daba9f1038ad446e7b0f582e9b3c46d951a915e23e30"
+    sha256 "578909b089506081d3b614a5ce9f28a4e4dc85db962645e0f47fba44cae768ac"
 
     url "https://github.com/tony1223/better-agent-terminal/releases/download/v#{version}/BetterAgentTerminal-#{version}-arm64.lightweight.dmg"
   end
   on_intel do
-    sha256 "d71a3e33c776be7321cdf2c3589fa9aef14fe1d8a5f9be78d6bb793c48c18133"
+    sha256 "91efe231167cad51428465efa6a9e9989d01d708aa6d79e7001895ca8e708e91"
 
     url "https://github.com/tony1223/better-agent-terminal/releases/download/v#{version}/BetterAgentTerminal-#{version}-x64.lightweight.dmg"
   end
