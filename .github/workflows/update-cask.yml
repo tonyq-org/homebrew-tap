@@ -49,7 +49,7 @@ jobs:
           echo "x64 SHA256: $X64_SHA"
           echo "X64_SHA=$X64_SHA" >> $GITHUB_OUTPUT
 
-      - name: Update Cask
+      - name: Update Casks
         run: |
           VERSION="${{ steps.version.outputs.VERSION }}"
           ARM_SHA="${{ steps.sha.outputs.ARM_SHA }}"
@@ -82,10 +82,39 @@ jobs:
           # Remove leading spaces from heredoc
           sed -i 's/^          //' Casks/better-agent-terminal.rb
 
+          # The pre-release channel tracks the newest build of any kind, so a
+          # stable release also advances better-agent-terminal-pre: a stable
+          # version outranks the preceding pre in Homebrew's version compare,
+          # and the arm64 lightweight DMG (which the pre cask uses) is built
+          # for stable too. Reuse the arm64 SHA computed above (pre is arm64
+          # only). This is written in the same commit as the stable cask, so
+          # the two never race on push.
+          cat > Casks/better-agent-terminal-pre.rb << EOF
+          cask "better-agent-terminal-pre" do
+            version "${VERSION}"
+            sha256 "${ARM_SHA}"
+
+            url "https://github.com/tony1223/better-agent-terminal/releases/download/v#{version}/BetterAgentTerminal-#{version}-arm64.lightweight.dmg"
+
+            name "BetterAgentTerminal (Pre-release)"
+            desc "Terminal aggregator with multi-workspace support and Claude Code integration (pre-release channel)"
+            homepage "https://github.com/tony1223/better-agent-terminal"
+
+            depends_on arch: :arm64
+            depends_on formula: "node"
+            depends_on cask: ["codex", "claude-code"]
+
+            conflicts_with cask: "better-agent-terminal"
+
+            app "BetterAgentTerminal.app"
+          end
+          EOF
+          sed -i 's/^          //' Casks/better-agent-terminal-pre.rb
+
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Casks/better-agent-terminal.rb
-          git commit -m "Update better-agent-terminal to ${{ steps.version.outputs.VERSION }}"
+          git add Casks/better-agent-terminal.rb Casks/better-agent-terminal-pre.rb
+          git commit -m "Update better-agent-terminal + pre to ${{ steps.version.outputs.VERSION }}"
           git push
