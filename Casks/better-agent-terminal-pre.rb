@@ -1,6 +1,6 @@
 cask "better-agent-terminal-pre" do
-  version "3.1.7-pre.7"
-  sha256 "3e4ade4c8fd8d3655247d59ea6bc8be9fe57fc88d463ac770cd53a7a3c140cbc"
+  version "3.1.8-pre.1"
+  sha256 "6cc6a643c8b61ed1aab36cc44c3617959a6a12bcbc588b5b87e2eb51ccf00700"
 
   url "https://github.com/tony1223/better-agent-terminal/releases/download/v#{version}/BetterAgentTerminal-#{version}-arm64.lightweight.dmg"
 
@@ -15,10 +15,4 @@ cask "better-agent-terminal-pre" do
   conflicts_with cask: "better-agent-terminal"
 
   app "BetterAgentTerminal.app"
-
-  postflight do
-    system_command "/usr/bin/xattr",
-                   args: ["-dr", "com.apple.quarantine", "#{appdir}/BetterAgentTerminal.app"],
-                   sudo: false
-  end
 end
