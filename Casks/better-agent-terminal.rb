@@ -1,13 +1,13 @@
 cask "better-agent-terminal" do
-  version "3.1.6"
+  version "3.1.8"
 
   on_arm do
-    sha256 "c39a9d5edbe8dfa19e170eeed0efe5f24c3e7c5067c36f03992c6b4f71b3fd32"
+    sha256 "292b955196ecff1b7cfbd122c7595e4f3aebbe29a595ec0d2eb1b2de37333d9d"
 
     url "https://github.com/tony1223/better-agent-terminal/releases/download/v#{version}/BetterAgentTerminal-#{version}-arm64.lightweight.dmg"
   end
   on_intel do
-    sha256 "2261c46b4da11ff4f4588d006000cd4b8d20177a7166b50c16f8361ef9b648c6"
+    sha256 "29a293068a9323336cb9021f736cca5aa1095daae7ee3eed969d37879fc5ecfb"
 
     url "https://github.com/tony1223/better-agent-terminal/releases/download/v#{version}/BetterAgentTerminal-#{version}-x64.lightweight.dmg"
   end
@@ -20,10 +20,4 @@ cask "better-agent-terminal" do
   depends_on cask: ["codex", "claude-code"]
 
   app "BetterAgentTerminal.app"
-
-  postflight do
-    system_command "/usr/bin/xattr",
-                   args: ["-dr", "com.apple.quarantine", "#{appdir}/BetterAgentTerminal.app"],
-                   sudo: false
-  end
 end
