@@ -1,0 +1,78 @@
+name: Update Cask (Pre-release)
+
+on:
+  repository_dispatch:
+    types: [update-cask-pre]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Pre-release version to update to (without v prefix, e.g. 3.1.7-pre.4)'
+        required: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            echo "VERSION=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download arm64 lightweight DMG and compute SHA256
+        id: sha
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          BASE="https://github.com/tony1223/better-agent-terminal/releases/download/v${VERSION}"
+
+          ARM_URL="${BASE}/BetterAgentTerminal-${VERSION}-arm64.lightweight.dmg"
+
+          echo "Downloading $ARM_URL"
+          curl -fsSL "$ARM_URL" -o arm64.dmg
+          ARM_SHA=$(shasum -a 256 arm64.dmg | awk '{print $1}')
+          echo "arm64 SHA256: $ARM_SHA"
+          echo "ARM_SHA=$ARM_SHA" >> $GITHUB_OUTPUT
+
+      - name: Update Cask
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          ARM_SHA="${{ steps.sha.outputs.ARM_SHA }}"
+          cat > Casks/better-agent-terminal-pre.rb << EOF
+          cask "better-agent-terminal-pre" do
+            version "${VERSION}"
+            sha256 "${ARM_SHA}"
+
+            url "https://github.com/tony1223/better-agent-terminal/releases/download/v#{version}/BetterAgentTerminal-#{version}-arm64.lightweight.dmg"
+
+            name "BetterAgentTerminal (Pre-release)"
+            desc "Terminal aggregator with multi-workspace support and Claude Code integration (pre-release channel)"
+            homepage "https://github.com/tony1223/better-agent-terminal"
+
+            depends_on arch: :arm64
+            depends_on formula: "node"
+            depends_on cask: ["codex", "claude-code"]
+
+            conflicts_with cask: "better-agent-terminal"
+
+            app "BetterAgentTerminal.app"
+          end
+          EOF
+          # Remove leading spaces from heredoc
+          sed -i 's/^          //' Casks/better-agent-terminal-pre.rb
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/better-agent-terminal-pre.rb
+          git commit -m "Update better-agent-terminal-pre to ${{ steps.version.outputs.VERSION }}"
+          git push
