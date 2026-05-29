@@ -15,4 +15,10 @@ cask "better-agent-terminal-pre" do
   conflicts_with cask: "better-agent-terminal"
 
   app "BetterAgentTerminal.app"
+
+  postflight do
+    system_command "/usr/bin/xattr",
+                   args: ["-dr", "com.apple.quarantine", "#{appdir}/BetterAgentTerminal.app"],
+                   sudo: false
+  end
 end

@@ -20,4 +20,10 @@ cask "better-agent-terminal" do
   depends_on cask: ["codex", "claude-code"]
 
   app "BetterAgentTerminal.app"
+
+  postflight do
+    system_command "/usr/bin/xattr",
+                   args: ["-dr", "com.apple.quarantine", "#{appdir}/BetterAgentTerminal.app"],
+                   sudo: false
+  end
 end
