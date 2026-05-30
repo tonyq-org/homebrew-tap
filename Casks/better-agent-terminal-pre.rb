@@ -1,6 +1,6 @@
 cask "better-agent-terminal-pre" do
-  version "3.1.9"
-  sha256 "80073af79d62ecddfede40f9a39ea02605ed30e41fe68572d0b94761c3a9b424"
+  version "3.1.10"
+  sha256 "60258b3594c1f1d23b339e90beee0b19980519d5ea2b079ae600e7ffdd99c91f"
 
   url "https://github.com/tony1223/better-agent-terminal/releases/download/v#{version}/BetterAgentTerminal-#{version}-arm64.lightweight.dmg"
 
